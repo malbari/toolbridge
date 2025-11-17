@@ -7,6 +7,7 @@ import {
   CHAT_COMPLETIONS_FULL_URL,
   OLLAMA_DEFAULT_CONTEXT_LENGTH,
   PLACEHOLDER_OLLAMA_URL,
+  PROXY_AUTH_TOKENS_FILE,
   PROXY_HOST,
   PROXY_PORT,
   validateConfig,
@@ -14,11 +15,13 @@ import {
 import genericProxy from "./src/genericProxy.js";
 import chatCompletionsHandler from "./src/handlers/chatHandler.js";
 import { FORMAT_OLLAMA } from "./src/handlers/formatDetector.js";
+import { authenticateProxy, initializeAuth } from "./src/middleware/auth.js";
 import { buildBackendHeaders } from "./src/utils/headerUtils.js";
 import logger from "./src/utils/logger.js";
 import { logRequest, logResponse } from "./src/utils/requestLogger.js";
 
 validateConfig();
+initializeAuth(PROXY_AUTH_TOKENS_FILE);
 
 const app = express();
 
@@ -33,7 +36,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.post("/api/show", express.json(), async (req, res) => {
+app.post("/api/show", authenticateProxy, express.json(), async (req, res) => {
   logRequest(req, "OLLAMA SHOW");
 
   if (logger.debug) {
@@ -260,7 +263,7 @@ app.post("/api/show", express.json(), async (req, res) => {
   }
 });
 
-app.get("/api/tags", async (req, res) => {
+app.get("/api/tags", authenticateProxy, async (req, res) => {
   logRequest(req, "OLLAMA TAGS");
 
   if (logger.debug) {
@@ -437,7 +440,7 @@ app.get("/api/tags", async (req, res) => {
   }
 });
 
-app.get("/v1/models", async (req, res) => {
+app.get("/v1/models", authenticateProxy, async (req, res) => {
   logRequest(req, "MODELS");
 
   if (logger.debug) {
@@ -544,6 +547,7 @@ app.get("/v1/models", async (req, res) => {
 
 app.post(
   "/v1/chat/completions",
+  authenticateProxy,
   express.json({limit: "100mb"}),
   (req, res, next) => {
     logRequest(req, "CHAT COMPLETIONS");
@@ -578,6 +582,7 @@ app.post(
 
 app.use(
   "/v1",
+  authenticateProxy,
   express.raw({ type: "*/*", limit: "100mb" }),
   (req, res, next) => {
     const path = req.path.split("/")[1] || "root";

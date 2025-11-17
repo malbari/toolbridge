@@ -1,0 +1,11 @@
+# Token di autenticazione autorizzati per il proxy
+# Un token per riga. Le righe vuote e quelle che iniziano con # sono ignorate.
+# 
+# Esempio:
+# my-secret-token-123
+# another-token-xyz-789
+#
+# Per abilitare l'autenticazione, imposta la variabile d'ambiente:
+# PROXY_AUTH_TOKENS_FILE=./allowed-tokens.txt
+#
+# Se questa variabile non è impostata, l'autenticazione è disabilitata.

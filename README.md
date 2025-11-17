@@ -191,6 +191,7 @@ The primary configuration is done via the `.env` file. Here are the key settings
 
 - `PROXY_PORT`: The port the proxy server will listen on (default: `3000`) - use `11434` to match Ollama's port
 - `PROXY_HOST`: The host address to bind to (default: `0.0.0.0`)
+- `PROXY_AUTH_TOKENS_FILE`: (Optional) Path to a file containing authorized bearer tokens (one per line). If not set, authentication is disabled.
 
 **🔄 Tool Reinjection Settings:**
 
@@ -210,6 +211,44 @@ The primary configuration is done via the `.env` file. Here are the key settings
 - `X_TITLE`: Optional application name for OpenRouter tracking
 
 ## 🔧 Advanced Options
+
+### 🔒 Authentication
+
+ToolBridge supports bearer token authentication to protect access to the proxy endpoints.
+
+#### Enable Authentication
+
+1. Create a file with authorized tokens (one per line):
+
+   ```bash
+   echo "my-secret-token-123" > allowed-tokens.txt
+   echo "another-token-xyz-789" >> allowed-tokens.txt
+   ```
+
+2. Configure the environment variable:
+
+   ```properties
+   PROXY_AUTH_TOKENS_FILE=./allowed-tokens.txt
+   ```
+
+3. Restart the proxy server
+
+#### Usage
+
+Clients must include the `Authorization` header with a bearer token:
+
+```bash
+curl -H "Authorization: Bearer my-secret-token-123" \
+     -H "Content-Type: application/json" \
+     -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}' \
+     http://localhost:3000/v1/chat/completions
+```
+
+**Notes:**
+- Empty lines and lines starting with `#` are ignored
+- Tokens are reloaded automatically when the file is modified (hot-reload)
+- If `PROXY_AUTH_TOKENS_FILE` is not set, authentication is disabled
+- All endpoints (`/v1/chat/completions`, `/v1/models`, `/api/tags`, etc.) are protected when authentication is enabled
 
 ### 🔀 Backend Selection Header
 

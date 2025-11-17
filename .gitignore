@@ -128,3 +128,5 @@ build
 
 # package-lock.json (if you want to ignore it)
 package-lock.json
+
+.tokens.txt
